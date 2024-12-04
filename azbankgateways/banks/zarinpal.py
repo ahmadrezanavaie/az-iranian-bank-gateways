@@ -110,10 +110,14 @@ class Zarinpal(BaseBank):
         super(Zarinpal, self).verify(transaction_code)
         data = self.get_verify_data()
         client = self._get_client(timeout=10)
-        result = client.service.PaymentVerification(**data)
-        if result.Status in [100, 101]:
-            self._set_payment_status(PaymentStatus.COMPLETE)
-        else:
+        try:
+            result = client.service.PaymentVerification(**data)
+            if result.Status in [100, 101]:
+                self._set_payment_status(PaymentStatus.COMPLETE)
+            else:
+                self._set_payment_status(PaymentStatus.CANCEL_BY_USER)
+                logging.debug("Zarinpal gateway unapprove payment")
+        except:
             self._set_payment_status(PaymentStatus.CANCEL_BY_USER)
             logging.debug("Zarinpal gateway unapprove payment")
 
